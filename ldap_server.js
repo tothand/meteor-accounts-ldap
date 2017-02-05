@@ -285,6 +285,25 @@ Accounts.registerLoginHandler('ldap', function (loginRequest) {
             // Create hashed token so user stays logged in
             stampedToken = Accounts._generateStampedLoginToken();
             var hashStampedToken = Accounts._hashStampedToken(stampedToken);
+
+            if (ldapResponse.searchResults && Accounts.ldapObj.options.searchResultsProfileMap.length > 0) {
+
+                var profileObject = {};
+                Accounts.ldapObj.options.searchResultsProfileMap.map(function (item) {
+                    profileObject[item.profileProperty] = ldapResponse.searchResults[0][item.profileProperty];
+                });
+
+                console.log(profileObject);
+
+                Meteor.users.update(userId, {
+                    $set: {
+                        'profile': profileObject
+                    }
+                });
+
+
+            }
+
             // Update the user's token in mongo
             Meteor.users.update(userId, {
                 $push: {
